@@ -228,6 +228,7 @@ class SigloWindow(Gtk.ApplicationWindow):
             self.main_stack.set_visible_child_name("nodevice")
 
     def callback_device_connect(self, data):
+        print(f"joe: data: {data}")
         firmware, battery = data
 
         self.watch_firmware.set_text(firmware)

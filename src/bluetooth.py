@@ -113,6 +113,7 @@ class InfiniTimeDevice(gatt.Device):
         super().__init__(mac_address, manager)
 
     def connect(self):
+        print("Trying to connect over bluetooth!")
         self.successful_connection = True
         super().connect()
 
@@ -127,19 +128,23 @@ class InfiniTimeDevice(gatt.Device):
 
     def disconnect_succeeded(self):
         super().disconnect_succeeded()
+        print("in bluetooth.py")
         print("[%s] Disconnected" % (self.mac_address))
 
     def characteristic_write_value_succeeded(self, characteristic):
         if not self.conf.get_property("paired"):
+            print("Intentionally disconnecting")
             self.disconnect()
 
     def services_resolved(self):
+        print("Services have resolved!")
         super().services_resolved()
         infosvc = None
         timesvc = None
         battsvc = None
         alertsvc = None
         for svc in self.services:
+            print(f"{svc}")
             if svc.uuid == BTSVC_INFO:
                 infosvc = svc
             elif svc.uuid == BTSVC_TIME:
@@ -166,17 +171,20 @@ class InfiniTimeDevice(gatt.Device):
                 for c in infosvc.characteristics
                 if c.uuid == BTCHAR_FIRMWARE
             )
-        
+
             # Get device firmware
+            print("joe: Checking for firmware version")
             self.firmware = info_firmware.read_value()
 
         if alertsvc:
+            print(f"We've got alertsvc: {alertsvc}")
             self.new_alert = next(
                 c
                 for c in alertsvc.characteristics
                 if c.uuid == BTCHAR_NEWALERT
             )
-        
+            print(f"{self.new_alert=}")
+
         self.battery = -1
         if battsvc:
             battery_level = next(
@@ -184,13 +192,12 @@ class InfiniTimeDevice(gatt.Device):
                 for c in battsvc.characteristics
                 if c.uuid == BTCHAR_BATTLEVEL
             )
-        
+
             # Get device firmware
             self.battery = int(battery_level.read_value()[0])
 
-        self.services_done()
-
     def send_notification(self, alert_dict):
+        print(f"Sending notification! {alert_dict}")
         message = alert_dict["message"]
         alert_category = "0"  # simple alert
         alert_number = "0"  # 0-255
@@ -206,6 +213,8 @@ class InfiniTimeDevice(gatt.Device):
 
         # arr = bytearray(message, "utf-8")
         # self.new_alert_characteristic.write_value(arr)
+        print(f"New alert service: {self.new_alert}")
+        print(f"{dir(self.new_alert)=}")
         self.new_alert.write_value(msg)
 
 

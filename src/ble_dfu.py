@@ -32,6 +32,7 @@ class InfiniTimeDFU(gatt.Device):
         super().__init__(mac_address, manager)
 
     def connect(self):
+        print("Connected via ble!")
         self.successful_connection = True
         super().connect()
 
@@ -73,6 +74,7 @@ class InfiniTimeDFU(gatt.Device):
         super().disconnect_succeeded()
         if not self.success:
             self.on_failure()
+        print("Disconnecting in ble stack")
         print("[%s] Disconnected" % (self.mac_address))
 
     def characteristic_enable_notifications_succeeded(self, characteristic):
